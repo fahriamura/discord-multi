@@ -54,16 +54,15 @@ function createWindow() {
 }
 
 function resizeActiveView() {
-  if (activeViewIndex >= 0 && views[activeViewIndex]) {
-    const bounds = mainWindow.getBounds();
-    const topOffset = 48;
-    views[activeViewIndex].view.setBounds({
+  if (activeViewIndex < 0 || !views[activeViewIndex] || !mainWindow) return;
+  const bounds = mainWindow.getBounds();
+  const topOffset = 48;
+  views[activeViewIndex].view.setBounds({
       x: 0,
       y: topOffset,
       width: bounds.width,
       height: bounds.height - topOffset,
     });
-  }
 }
 
 function createProfileView(profileId) {
@@ -160,6 +159,10 @@ function switchToView(index) {
   }
   activeViewIndex = index;
   resizeActiveView();
+  // Auto-focus the BrowserView so user can type immediately
+  if (views[index]) {
+    views[index].view.webContents.focus();
+  }
   mainWindow.webContents.send('active-profile-changed', index);
 }
 
