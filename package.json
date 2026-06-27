@@ -15,11 +15,43 @@
       "output": "dist"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
-      "category": "Network"
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Network",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.social-networking"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
-  "keywords": ["discord", "multi-profile", "lightweight"],
-  "author": "fahriamura",
-  "license": "MIT"
+  "keywords": [
+    "discord",
+    "multi-profile",
+    "lightweight"
+  ],
+  "author": {
+    "name": "fahriamura",
+    "email": "fahriamura@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^42.5.0",
+    "electron-builder": "^26.15.3"
+  }
 }
