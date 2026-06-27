@@ -1,0 +1,25 @@
+{
+  "name": "discord-multi",
+  "version": "1.0.0",
+  "description": "Lightweight multi-profile Discord client — no voice/video, minimal UI, multiple accounts",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux --x64",
+    "pack": "electron-builder --dir"
+  },
+  "build": {
+    "appId": "com.fahriamura.discord-multi",
+    "productName": "Discord Multi",
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Network"
+    }
+  },
+  "keywords": ["discord", "multi-profile", "lightweight"],
+  "author": "fahriamura",
+  "license": "MIT"
+}
