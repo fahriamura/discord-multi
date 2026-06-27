@@ -5,7 +5,10 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --linux --x64",
+    "build": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux --x64",
+    "build:mac": "electron-builder --mac --x64",
+    "build:all": "electron-builder --win --x64 --linux --x64",
     "pack": "electron-builder --dir"
   },
   "build": {
@@ -15,24 +18,19 @@
       "output": "dist"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
+      "target": ["AppImage", "deb"],
       "category": "Network",
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "desktopName": "Discord Multi",
+      "syncDesktopName": true
     },
     "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "assets/icon.ico"
+      "target": ["nsis"],
+      "icon": "assets/icon.png"
     },
     "mac": {
-      "target": [
-        "dmg"
-      ],
-      "icon": "assets/icon.icns",
+      "target": ["dmg"],
+      "icon": "assets/icon.png",
       "category": "public.app-category.social-networking"
     },
     "nsis": {
