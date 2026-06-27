@@ -16,6 +16,7 @@ const profileNameInput = document.getElementById('profile-name');
 // ── Dialog controls ──
 
 function openDialog() {
+  ipcRenderer.send('dialog-open');
   dialogOverlay.classList.add('show');
   profileNameInput.value = '';
   profileNameInput.focus();
@@ -23,6 +24,7 @@ function openDialog() {
 
 function closeDialog() {
   dialogOverlay.classList.remove('show');
+  ipcRenderer.send('dialog-close');
 }
 
 function saveProfile() {

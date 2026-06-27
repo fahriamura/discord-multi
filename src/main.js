@@ -153,6 +153,17 @@ ipcMain.on('mute-profile', (event, profileId) => {
   }
 });
 
+// Show dialog above BrowserView: temporarily hide active view
+ipcMain.on('dialog-open', () => {
+  if (activeViewIndex >= 0 && views[activeViewIndex]) {
+    views[activeViewIndex].view.setBounds({ x: 0, y: 48, width: 0, height: 0 });
+  }
+});
+
+ipcMain.on('dialog-close', () => {
+  resizeActiveView();
+});
+
 function switchToView(index) {
   if (activeViewIndex >= 0 && views[activeViewIndex]) {
     views[activeViewIndex].view.setBounds({ x: 0, y: 48, width: 0, height: 0 });
