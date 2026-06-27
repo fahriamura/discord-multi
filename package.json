@@ -2,7 +2,7 @@
   "name": "discord-multi",
   "version": "1.0.0",
   "description": "Lightweight multi-profile Discord client — no voice/video, minimal UI, multiple accounts",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win --x64",

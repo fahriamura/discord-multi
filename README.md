@@ -4,8 +4,9 @@
 
 ## ✨ Fitur
 - **Multi Profile** — tambah & switch antar akun Discord dalam satu window
+- **Login Email & Password** — native Discord login, bukan token
 - **Ringan** — voice/video chat, streaming, game overlay, dan Nitro promotions dihapus total
-- **Isolated Sessions** — setiap profile punya session terpisah (cookies, localStorage sendiri)
+- **Session Terisolasi** — setiap profile punya session terpisah (cookies, localStorage sendiri)
 - **UI Minimal** — tab bar sederhana, no distractions
 - **Animasi dimatikan** — UI lebih ringan & responsif
 
@@ -16,7 +17,23 @@
 - ❌ Game activity & overlay
 - ❌ Nitro / Shop promotions
 - ❌ WebRTC (RTCPeerConnection diblok di preload)
-- ❌ Animasi CSS (semua transition/animation diset 0s)
+- ❌ Animasi CSS
+- ❌ Telemetri & analytics
+
+## 📁 Struktur
+```
+discord-multi/
+├── src/
+│   ├── main.js          # Electron main process
+│   ├── preload.js       # Strip voice/video + CSS injection
+│   ├── renderer.js      # Tab UI logic + IPC
+│   └── index.html       # UI markup
+├── assets/
+│   └── icon.png
+├── .github/workflows/   # CI/CD multi-platform build
+├── package.json
+└── README.md
+```
 
 ## 🚀 Run
 ```
@@ -25,18 +42,20 @@ npm start
 ```
 
 ## 📦 Build
-```
-npm run build
-```
-Output di folder `dist/`.
+| Perintah | Output |
+|---|---|
+| `npm run build` | Windows `.exe` (NSIS installer) |
+| `npm run build:linux` | Linux `.AppImage` + `.deb` |
+| `npm run build:mac` | macOS `.dmg` |
+| `npm run build:all` | Semua platform |
 
-## 🔑 Token Login (opsional)
-Bisa login manual via Discord web page, atau pakai token:
-1. Buka Discord di browser
-2. `F12` → Application → Local Storage → `token`
-3. Paste di dialog "Add Profile"
+## 🔑 Login
+1. Klik **+** di tab bar
+2. Masukkan nama profile
+3. Halaman login Discord terbuka → masuk pakai **email & password** seperti biasa
+4. Session otomatis tersimpan & terisolasi dari profile lain
 
 ## ⚙️ Tech
 - **Electron** — cross-platform desktop
 - **BrowserView** — isolated session per profile
-- **electron-store** — local encrypted profile storage
+- **Native fs JSON** — zero-dependency profile storage
