@@ -57,7 +57,7 @@ function resizeActiveView() {
   if (activeViewIndex >= 0 && views[activeViewIndex]) {
     const bounds = mainWindow.getBounds();
     const topOffset = 48;
-    views[activeViewIndex].setBounds({
+    views[activeViewIndex].view.setBounds({
       x: 0,
       y: topOffset,
       width: bounds.width,
