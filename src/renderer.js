@@ -9,40 +9,54 @@ const addBtn = document.getElementById('add-profile');
 const welcome = document.getElementById('welcome');
 const dialogOverlay = document.getElementById('dialog-overlay');
 const muteBtn = document.getElementById('mute-btn');
+const btnCancel = document.getElementById('btn-cancel');
+const btnSave = document.getElementById('btn-save');
+const profileNameInput = document.getElementById('profile-name');
 
-// Add profile button
-addBtn.addEventListener('click', () => {
+// ── Dialog controls ──
+
+function openDialog() {
   dialogOverlay.classList.add('show');
-  document.getElementById('profile-name').focus();
-});
-
-// Close dialog on overlay click
-dialogOverlay.addEventListener('click', (e) => {
-  if (e.target === dialogOverlay) closeDialog();
-});
-
-// ESC to close dialog
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeDialog();
-});
-
-// Enter to save in dialog
-document.getElementById('profile-name').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') saveProfile();
-});
+  profileNameInput.value = '';
+  profileNameInput.focus();
+}
 
 function closeDialog() {
   dialogOverlay.classList.remove('show');
-  document.getElementById('profile-name').value = '';
 }
 
 function saveProfile() {
-  const name = document.getElementById('profile-name').value.trim() || 'Discord';
+  const name = profileNameInput.value.trim() || 'Discord';
   ipcRenderer.send('add-profile', { name });
   closeDialog();
 }
 
-// Receive profiles on load
+// Add profile button
+addBtn.addEventListener('click', openDialog);
+
+// Dialog buttons
+btnCancel.addEventListener('click', closeDialog);
+btnSave.addEventListener('click', saveProfile);
+
+// Close dialog on overlay click (not on dialog itself)
+dialogOverlay.addEventListener('click', (e) => {
+  if (e.target === dialogOverlay) closeDialog();
+});
+
+// ESC to close
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && dialogOverlay.classList.contains('show')) {
+    closeDialog();
+  }
+});
+
+// Enter in name input
+profileNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') saveProfile();
+});
+
+// ── IPC listeners ──
+
 ipcRenderer.on('profiles-loaded', (event, loaded) => {
   profiles = loaded;
 });
@@ -51,7 +65,6 @@ ipcRenderer.on('profiles-updated', (event, updated) => {
   profiles = updated;
 });
 
-// Tab bar updates
 ipcRenderer.on('tabs-updated', (event, tabs) => {
   rebuildTabs(tabs);
 });
@@ -61,8 +74,13 @@ ipcRenderer.on('active-profile-changed', (event, index) => {
   highlightTab(index);
 });
 
+ipcRenderer.on('profile-added', (event, { id, name }) => {
+  // tab will be built by tabs-updated
+});
+
+// ── Tab bar ──
+
 function rebuildTabs(tabs) {
-  // Remove existing tabs (keep add button, status bar)
   const existing = tabBar.querySelectorAll('.tab');
   existing.forEach((t) => t.remove());
 
@@ -72,20 +90,20 @@ function rebuildTabs(tabs) {
     el.dataset.index = i;
     el.dataset.id = tab.id;
     el.innerHTML = `
-      <span class="dot" title="Online"></span>
+      <span class="dot"></span>
       <span class="name">${escapeHtml(tab.name)}</span>
       <span class="close" title="Remove" data-action="close">×</span>
     `;
 
     el.addEventListener('click', (e) => {
       if (e.target.dataset.action === 'close') {
+        e.stopPropagation();
         ipcRenderer.send('remove-profile', tab.id);
       } else {
         ipcRenderer.send('switch-profile', i);
       }
     });
 
-    // Middle-click to close
     el.addEventListener('auxclick', (e) => {
       if (e.button === 1) {
         ipcRenderer.send('remove-profile', tab.id);
