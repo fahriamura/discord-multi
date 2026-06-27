@@ -1,8 +1,22 @@
 const { app, BrowserWindow, BrowserView, ipcMain, session, Menu } = require('electron');
 const path = require('path');
-const Store = require('electron-store');
+const fs = require('fs');
 
-const store = new Store({ name: 'profiles' });
+// Simple JSON-based profile store (no external deps)
+const storePath = path.join(app.getPath('userData'), 'profiles.json');
+
+function loadProfiles() {
+  try {
+    const data = fs.readFileSync(storePath, 'utf8');
+    return JSON.parse(data);
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveProfiles(profiles) {
+  fs.writeFileSync(storePath, JSON.stringify(profiles, null, 2));
+}
 
 let mainWindow;
 let views = [];
@@ -24,7 +38,7 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
-  const profiles = store.get('profiles', []);
+  const profiles = loadProfiles();
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send('profiles-loaded', profiles);
@@ -56,7 +70,7 @@ function createProfileView(profileId) {
   const partition = `persist:profile-${profileId}`;
   const ses = session.fromPartition(partition, { cache: true });
 
-  // Block WebRTC, telemetry, analytics
+  // Block telemetry/analytics
   ses.webRequest.onBeforeRequest({ urls: [
     '*://*/api/*/science*',
     '*://*/api/*/metrics*',
@@ -66,7 +80,6 @@ function createProfileView(profileId) {
     cb({ cancel: true });
   });
 
-  // Stable User-Agent
   ses.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   );
@@ -79,7 +92,6 @@ function createProfileView(profileId) {
     },
   });
 
-  // Load Discord login page directly
   view.webContents.loadURL('https://discord.com/login');
 
   mainWindow.addBrowserView(view);
@@ -93,10 +105,10 @@ function createProfileView(profileId) {
 
 // IPC Handlers
 ipcMain.on('add-profile', (event, { name }) => {
-  const profiles = store.get('profiles', []);
+  const profiles = loadProfiles();
   const id = Date.now().toString(36);
   profiles.push({ id, name });
-  store.set('profiles', profiles);
+  saveProfiles(profiles);
 
   const v = createProfileView(id);
   v.name = name;
@@ -120,10 +132,9 @@ ipcMain.on('remove-profile', (event, profileId) => {
     views.splice(idx, 1);
   }
 
-  const profiles = store.get('profiles', []).filter((p) => p.id !== profileId);
-  store.set('profiles', profiles);
+  const profiles = loadProfiles().filter((p) => p.id !== profileId);
+  saveProfiles(profiles);
 
-  // Clear session data for removed profile
   session.fromPartition(`persist:profile-${profileId}`).clearStorageData();
 
   if (views.length > 0) {
@@ -157,7 +168,6 @@ function refreshTabs() {
   mainWindow.webContents.send('tabs-updated', tabs);
 }
 
-// Menu
 const menuTemplate = [
   {
     label: 'Discord Multi',
@@ -187,8 +197,7 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
   createWindow();
 
-  // Restore saved profiles
-  const profiles = store.get('profiles', []);
+  const profiles = loadProfiles();
   profiles.forEach((p) => {
     const v = createProfileView(p.id);
     v.name = p.name;
