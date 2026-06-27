@@ -24,7 +24,6 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 
-  // Load saved profiles
   const profiles = store.get('profiles', []);
 
   mainWindow.webContents.on('did-finish-load', () => {
@@ -43,7 +42,7 @@ function createWindow() {
 function resizeActiveView() {
   if (activeViewIndex >= 0 && views[activeViewIndex]) {
     const bounds = mainWindow.getBounds();
-    const topOffset = 48; // Tab bar height
+    const topOffset = 48;
     views[activeViewIndex].setBounds({
       x: 0,
       y: topOffset,
@@ -53,38 +52,35 @@ function resizeActiveView() {
   }
 }
 
-function createProfileView(profileId, token) {
-  const ses = session.fromPartition(`persist:profile-${profileId}`, { cache: false });
+function createProfileView(profileId) {
+  const partition = `persist:profile-${profileId}`;
+  const ses = session.fromPartition(partition, { cache: true });
 
-  // Block WebRTC to disable voice/video entirely
-  ses.webRequest.onBeforeRequest({ urls: ['*://*/_/track*', '*://*/_/metrics*', '*://*.discord.gg/*'] }, (details, cb) => {
-    cb({ cancel: false });
+  // Block WebRTC, telemetry, analytics
+  ses.webRequest.onBeforeRequest({ urls: [
+    '*://*/api/*/science*',
+    '*://*/api/*/metrics*',
+    '*://*.sentry.io/*',
+    '*://*/api/*/experiments*',
+  ]}, (details, cb) => {
+    cb({ cancel: true });
   });
 
-  // Set a persistent User-Agent
+  // Stable User-Agent
   ses.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
   );
 
   const view = new BrowserView({
     webPreferences: {
-      partition: `persist:profile-${profileId}`,
+      partition: partition,
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
     },
   });
 
-  // Load Discord
-  view.webContents.loadURL('https://discord.com/channels/@me');
-
-  // Inject token if provided
-  if (token) {
-    view.webContents.on('did-finish-load', () => {
-      view.webContents.executeJavaScript(`
-        if (window.tokenInject) { window.tokenInject(${JSON.stringify(token)}); }
-      `).catch(() => {});
-    });
-  }
+  // Load Discord login page directly
+  view.webContents.loadURL('https://discord.com/login');
 
   mainWindow.addBrowserView(view);
   view.setAutoResize({ width: false, height: false });
@@ -96,13 +92,13 @@ function createProfileView(profileId, token) {
 }
 
 // IPC Handlers
-ipcMain.on('add-profile', (event, { name, token }) => {
+ipcMain.on('add-profile', (event, { name }) => {
   const profiles = store.get('profiles', []);
   const id = Date.now().toString(36);
-  profiles.push({ id, name, token });
+  profiles.push({ id, name });
   store.set('profiles', profiles);
 
-  const v = createProfileView(id, token);
+  const v = createProfileView(id);
   v.name = name;
   switchToView(views.length - 1);
 
@@ -126,6 +122,9 @@ ipcMain.on('remove-profile', (event, profileId) => {
 
   const profiles = store.get('profiles', []).filter((p) => p.id !== profileId);
   store.set('profiles', profiles);
+
+  // Clear session data for removed profile
+  session.fromPartition(`persist:profile-${profileId}`).clearStorageData();
 
   if (views.length > 0) {
     switchToView(Math.min(idx, views.length - 1));
@@ -191,7 +190,7 @@ app.whenReady().then(() => {
   // Restore saved profiles
   const profiles = store.get('profiles', []);
   profiles.forEach((p) => {
-    const v = createProfileView(p.id, p.token);
+    const v = createProfileView(p.id);
     v.name = p.name;
   });
 

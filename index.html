@@ -73,7 +73,7 @@
   #status-bar span { cursor: pointer; padding: 4px 8px; border-radius: 4px; }
   #status-bar span:hover { background: #2f3136; }
   
-  /* Add profile dialog */
+  /* Add profile dialog — simple, just name */
   .dialog-overlay {
     display: none;
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -83,26 +83,29 @@
   .dialog-overlay.show { display: flex; }
   .dialog {
     background: #36393f; border-radius: 8px; padding: 24px;
-    width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   }
-  .dialog h2 { font-size: 18px; margin-bottom: 16px; color: #fff; }
+  .dialog h2 { font-size: 18px; margin-bottom: 4px; color: #fff; }
+  .dialog .subtitle { font-size: 13px; color: #b9bbbe; margin-bottom: 16px; }
   .dialog label { display: block; font-size: 12px; color: #8e9297; margin-bottom: 4px; margin-top: 12px; }
   .dialog input {
     width: 100%; padding: 10px; background: #202225; border: 1px solid #2f3136;
     border-radius: 4px; color: #dcddde; font-size: 14px; outline: none;
   }
   .dialog input:focus { border-color: #5865f2; }
-  .dialog .hint { font-size: 11px; color: #72767d; margin-top: 4px; }
-  .dialog .hint code { background: #202225; padding: 1px 4px; border-radius: 3px; }
+  .dialog .hint { 
+    font-size: 11px; color: #72767d; margin-top: 12px; 
+    background: #202225; padding: 10px; border-radius: 4px; line-height: 1.6;
+  }
   .dialog .buttons { display: flex; gap: 8px; margin-top: 20px; justify-content: flex-end; }
   .dialog button {
     padding: 8px 16px; border-radius: 4px; border: none;
     font-size: 13px; cursor: pointer;
   }
   .dialog .btn-cancel { background: #4f545c; color: #dcddde; }
+  .dialog .btn-cancel:hover { background: #5d6269; }
   .dialog .btn-save { background: #5865f2; color: #fff; }
   .dialog .btn-save:hover { background: #4752c4; }
-  .dialog .btn-cancel:hover { background: #5d6269; }
   
   /* Welcome screen */
   #welcome {
@@ -122,11 +125,9 @@
 </head>
 <body>
 <div id="tab-bar">
-  <!-- Tabs injected by renderer -->
-  <button id="add-profile" title="Add Profile">+</button>
+  <button id="add-profile" title="Add Account">+</button>
   <div id="status-bar">
     <span id="mute-btn" title="Toggle Mute">🔊</span>
-    <span id="compact-btn" title="Compact Mode">◧</span>
   </div>
 </div>
 
@@ -134,27 +135,26 @@
   <h1>Discord Multi</h1>
   <p>Lightweight multi-profile Discord client</p>
   <div class="tip">
-    <strong>Click +</strong> to add a Discord profile.<br>
-    <strong>Login:</strong> Use Discord web interface to sign in.<br>
-    <strong>Switch:</strong> Click tabs to switch between accounts.<br>
-    <strong>Performance:</strong> Voice chat, streaming, and animations are disabled.
+    <strong>Click +</strong> to add a Discord account.<br>
+    <strong>Login pakai Email & Password</strong> — persis seperti Discord biasa.<br>
+    <strong>Switch:</strong> Klik tab untuk pindah antar akun.<br>
+    <strong>Ringan:</strong> Voice chat, streaming, dan animasi dimatikan.
   </div>
 </div>
 
 <div class="dialog-overlay" id="dialog-overlay">
   <div class="dialog">
-    <h2>Add Discord Profile</h2>
-    <label>Profile Name</label>
-    <input id="profile-name" type="text" placeholder="e.g. Main, Alt, Work" maxlength="24">
-    <label>Token <span style="color:#72767d;font-weight:normal">(optional)</span></label>
-    <input id="profile-token" type="password" placeholder="Paste your Discord token here">
+    <h2>Tambah Akun Discord</h2>
+    <p class="subtitle">Login pakai email & password Discord kamu</p>
+    <label>Nama Profile</label>
+    <input id="profile-name" type="text" placeholder="cth: Main, Alt, Kerja" maxlength="24" autofocus>
     <div class="hint">
-      Get token: <code>F12 → Application → Local Storage → token</code><br>
-      Leave blank to login manually via Discord web page.
+      Setelah klik <strong>Tambah</strong>, halaman login Discord akan terbuka.<br>
+      Masuk pakai <strong>email & password</strong> seperti biasa — session otomatis tersimpan dan terisolasi dari profile lain.
     </div>
     <div class="buttons">
-      <button class="btn-cancel" onclick="closeDialog()">Cancel</button>
-      <button class="btn-save" onclick="saveProfile()">Add Profile</button>
+      <button class="btn-cancel" onclick="closeDialog()">Batal</button>
+      <button class="btn-save" onclick="saveProfile()">Tambah</button>
     </div>
   </div>
 </div>

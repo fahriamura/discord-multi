@@ -9,7 +9,6 @@ const addBtn = document.getElementById('add-profile');
 const welcome = document.getElementById('welcome');
 const dialogOverlay = document.getElementById('dialog-overlay');
 const muteBtn = document.getElementById('mute-btn');
-const compactBtn = document.getElementById('compact-btn');
 
 // Add profile button
 addBtn.addEventListener('click', () => {
@@ -28,30 +27,24 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Enter to save in dialog
-document.getElementById('profile-token').addEventListener('keydown', (e) => {
+document.getElementById('profile-name').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') saveProfile();
 });
 
 function closeDialog() {
   dialogOverlay.classList.remove('show');
   document.getElementById('profile-name').value = '';
-  document.getElementById('profile-token').value = '';
 }
 
 function saveProfile() {
-  const name = document.getElementById('profile-name').value.trim() || 'Profile';
-  const token = document.getElementById('profile-token').value.trim();
-  ipcRenderer.send('add-profile', { name, token });
+  const name = document.getElementById('profile-name').value.trim() || 'Discord';
+  ipcRenderer.send('add-profile', { name });
   closeDialog();
 }
 
 // Receive profiles on load
 ipcRenderer.on('profiles-loaded', (event, loaded) => {
   profiles = loaded;
-});
-
-ipcRenderer.on('profile-added', (event, { id, name }) => {
-  // Will be handled by tabs-updated
 });
 
 ipcRenderer.on('profiles-updated', (event, updated) => {
@@ -79,9 +72,9 @@ function rebuildTabs(tabs) {
     el.dataset.index = i;
     el.dataset.id = tab.id;
     el.innerHTML = `
-      <span class="dot"></span>
+      <span class="dot" title="Online"></span>
       <span class="name">${escapeHtml(tab.name)}</span>
-      <span class="close" data-action="close">×</span>
+      <span class="close" title="Remove" data-action="close">×</span>
     `;
 
     el.addEventListener('click', (e) => {
@@ -119,22 +112,10 @@ function updateWelcome() {
 
 // Mute toggle
 muteBtn.addEventListener('click', () => {
-  const tabs = tabBar.querySelectorAll('.tab');
-  if (tabs.length > 0) {
-    const activeTab = tabBar.querySelector('.tab.active');
-    if (activeTab) {
-      ipcRenderer.send('mute-profile', activeTab.dataset.id);
-      muteBtn.textContent = muteBtn.textContent === '🔊' ? '🔇' : '🔊';
-    }
-  }
-});
-
-// Compact toggle
-compactBtn.addEventListener('click', () => {
-  const menu = require('electron').remote?.Menu?.getApplicationMenu();
-  if (menu) {
-    const compactItem = menu.getMenuItemById('compact');
-    if (compactItem) compactItem.click();
+  const activeTab = tabBar.querySelector('.tab.active');
+  if (activeTab) {
+    ipcRenderer.send('mute-profile', activeTab.dataset.id);
+    muteBtn.textContent = muteBtn.textContent === '🔊' ? '🔇' : '🔊';
   }
 });
 
