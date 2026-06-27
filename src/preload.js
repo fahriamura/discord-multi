@@ -1,55 +1,35 @@
 // ============================================
 // Discord Multi — Preload Script
-// Blocks WebRTC + disables heavy features
+// Blocks WebRTC for voice/video, keeps everything else intact
 // ============================================
 
-// ---- Block WebRTC completely (prevents voice/video) ----
+// ---- Block WebRTC (prevents voice/video calls) ----
+// Only block actual WebRTC APIs. Keep AudioContext (needed for captcha, sound effects).
 const webrtcAPIs = [
   'RTCPeerConnection', 'webkitRTCPeerConnection', 'mozRTCPeerConnection',
   'RTCSessionDescription', 'RTCIceCandidate', 'RTCDataChannel',
-  'MediaStream', 'MediaStreamTrack', 'MediaDeviceInfo',
-  'getUserMedia', 'webkitGetUserMedia',
-  'AudioContext', 'webkitAudioContext',
 ];
 
 webrtcAPIs.forEach((key) => {
   try { delete window[key]; } catch (e) {}
 });
 
-// Stub navigator.mediaDevices
+// Block getUserMedia only (camera/mic access)
 try {
-  Object.defineProperty(navigator, 'mediaDevices', {
-    value: {
-      getUserMedia: () => Promise.reject(new Error('Voice/Video disabled')),
-      enumerateDevices: () => Promise.resolve([]),
-      getDisplayMedia: () => Promise.reject(new Error('Screen share disabled')),
-    },
-    writable: false,
-    configurable: false,
-  });
+  const orig = navigator.mediaDevices;
+  if (orig) {
+    orig.getUserMedia = () => Promise.reject(new Error('Voice/Video disabled'));
+    orig.getDisplayMedia = () => Promise.reject(new Error('Screen share disabled'));
+  }
 } catch (e) {}
 
-// Stub speech synthesis
-try {
-  Object.defineProperty(window, 'speechSynthesis', {
-    value: { speak: () => {}, cancel: () => {}, pause: () => {}, resume: () => {} },
-    writable: false,
-  });
-} catch (e) {}
-
-// Block speech recognition
-try { delete window.SpeechRecognition; } catch (e) {}
-try { delete window.webkitSpeechRecognition; } catch (e) {}
-
-// ---- Lightweight CSS (no aggressive hiding) ----
+// ---- Lightweight CSS (minimal, won't break anything) ----
 const style = document.createElement('style');
 style.id = 'discord-multi-light';
 style.textContent = `
-  /* Disable font smoothing for lighter rendering */
   body {
     font-smooth: never !important;
     -webkit-font-smoothing: none !important;
-    text-rendering: optimizeSpeed !important;
   }
 `;
 if (document.head) {
